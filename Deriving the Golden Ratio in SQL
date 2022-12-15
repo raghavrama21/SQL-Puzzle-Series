@@ -1,0 +1,10 @@
+-- CTEs to building the FibonacciSequence
+WITH BASE AS 
+(SELECT 0 as FirstNumber, 1 as SecondNumber
+UNION ALL
+SELECT SecondNumber,FirstNumber+SecondNumber AS SecondNumber FROM BASE WHERE SecondNumber<100)
+
+-- Fibonna Sequence with the golden ratio
+SELECT	FirstNumber AS FibonacciSequence, 
+		ROUND(COALESCE(CAST(SecondNumber AS FLOAT)/CAST(CASE WHEN FirstNumber = 0 THEN NULL ELSE FirstNumber END AS FLOAT),0),3) AS TheGoldenRatio
+FROM BASE;
