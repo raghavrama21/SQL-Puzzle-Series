@@ -1,8 +1,10 @@
 -- CTEs to building the FibonacciSequence
 WITH BASE AS 
-(SELECT 0 as FirstNumber, 1 as SecondNumber
-UNION ALL
-SELECT SecondNumber,FirstNumber+SecondNumber AS SecondNumber FROM BASE WHERE SecondNumber<100)
+	(SELECT 0 as FirstNumber, 1 as SecondNumber
+	UNION ALL
+	SELECT SecondNumber,FirstNumber+SecondNumber AS SecondNumber 
+	FROM BASE 
+	WHERE SecondNumber<100)
 
 -- Fibonna Sequence with the golden ratio
 SELECT	FirstNumber AS FibonacciSequence, 
