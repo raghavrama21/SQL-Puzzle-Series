@@ -1,0 +1,59 @@
+DROP TABLE IF EXISTS #ContactInfo;
+GO
+
+CREATE TABLE #ContactInfo
+(
+CustomerID  INTEGER,
+[Type]      VARCHAR(100),
+PhoneNumber VARCHAR(12),
+PRIMARY KEY (CustomerID, [Type])
+);
+GO
+
+INSERT INTO #ContactInfo VALUES
+(11,'Mobile','621-231-4311'),
+(11,'Emergency','621-543-8765'),
+(11,'Personal','621-056-1356'),
+(12,'Mobile','621-843-2689'),
+(12,'Emergency','621-324-1290'),
+(13,'Mobile','621-831-3241'),
+(13,'Personal','621-381-1275');
+GO
+
+--- Method 1 - CASE WHEN with MAX
+SELECT	CustomerID,
+		MAX(CASE WHEN Type IN ('Emergency') THEN PhoneNumber ELSE NULL END) AS Emergency,
+		MAX(CASE WHEN Type IN ('Mobile') THEN PhoneNumber ELSE NULL END) AS Mobile,
+		MAX(CASE WHEN Type IN ('Personal') THEN PhoneNumber ELSE NULL END) AS Personal
+FROM	#ContactInfo
+GROUP BY CustomerID;
+
+--- Method 2 - Using CTEs and JOINs
+WITH cte_Emergency AS
+(SELECT  CustomerID, PhoneNumber AS Emergency
+FROM    #ContactInfo
+WHERE   [Type] = 'Emergency'),
+
+cte_Mobile AS
+(SELECT  CustomerID, PhoneNumber AS Mobile
+FROM    #ContactInfo
+WHERE   [Type] = 'Mobile'),
+
+cte_Personal AS
+(SELECT  CustomerID, PhoneNumber AS Personal
+FROM    #ContactInfo
+WHERE   [Type] = 'Personal')
+
+SELECT  a.CustomerID,
+        b.Emergency,
+        c.Mobile,
+        d.Personal
+FROM    (SELECT DISTINCT CustomerID FROM #ContactInfo) a LEFT OUTER JOIN
+        cte_Emergency b ON a.CustomerID = b.CustomerID LEFT OUTER JOIN
+        cte_Mobile c ON a.CustomerID = c.CustomerID LEFT OUTER JOIN
+        cte_Personal d ON a.CustomerID = d.CustomerID;
+
+--- Method 3 - Inbuilt PIVOT-UNPIVOT feature
+SELECT CustomerID,[Emergency],[Mobile],[Personal] 
+FROM #ContactInfo PIVOT (MAX(PhoneNumber) FOR [Type] IN ([Emergency],[Mobile],[Personal])) AS PivotClause;
+GO
