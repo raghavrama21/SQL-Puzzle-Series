@@ -1,0 +1,57 @@
+DROP TABLE IF EXISTS #Candidates;
+DROP TABLE IF EXISTS #Requirements;
+GO
+
+CREATE TABLE #Candidates
+(
+Candidate VARCHAR(100),
+Skills  VARCHAR(100),
+PRIMARY KEY (Candidate, Skills)
+);
+GO
+
+INSERT INTO #Candidates VALUES
+('A','Copy Writing'),
+('A','SEO'),
+('A','Social Media'),
+('A','Web Content Writing'),
+('A','Writing'),
+('A','C++'),
+('A','RShiny'),
+('A','Perl'),
+('B','Copy Writing'),
+('B','PowerBI'),
+('B','Social Media'),
+('B','SQL'),
+('B','Writing'),
+('B','R'),
+('B','Java'),
+('B','Excel');
+GO
+
+CREATE TABLE #Requirements
+(
+Requirement VARCHAR(100) PRIMARY KEY
+);
+GO
+
+INSERT INTO #Requirements VALUES
+('Copy Writing'),
+('PowerBI'),
+('Social Media'),
+('SQL'),
+('Writing'),
+('Film Production'),
+('Research'),
+('Documenting'),
+('Graphic Design'),
+('Story Telling');
+GO
+
+SELECT  Candidate
+FROM    #Candidates
+WHERE   Skills IN (SELECT Requirement FROM #Requirements)
+GROUP BY Candidate
+HAVING COUNT(*)>=5;
+GO
+
