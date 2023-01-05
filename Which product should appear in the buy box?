@@ -1,0 +1,86 @@
+DROP TABLE IF EXISTS #SellerInfo;
+DROP TABLE IF EXISTS #Products;
+DROP TABLE IF EXISTS #SellerRatings;
+GO
+
+CREATE TABLE #SellerInfo
+(
+Sellers VARCHAR(100),
+PRIMARY KEY (Sellers)
+);
+GO
+
+INSERT INTO #SellerInfo VALUES
+('A'),('B'),('C'),('D'),('E'),('F');
+GO
+
+CREATE TABLE #Products
+(
+ProductName VARCHAR(100),
+Sellers VARCHAR(100),
+Price INTEGER
+);
+GO
+
+INSERT INTO #Products VALUES
+('DualShock 4 Wireless Controller','A',55),
+('DualShock 4 Wireless Controller','C',60),
+('DualShock 4 Wireless Controller','D',58),
+('Marvels Spider-Man','A',49),
+('Marvels Spider-Man','B',50),
+('Marvels Spider-Man','C',50),
+('PlayStation PULSE 3D Wireless Headset','C',99),
+('PlayStation PULSE 3D Wireless Headset','D',102),
+('PlayStation PULSE 3D Wireless Headset','E',85),
+('PlayStation PULSE 3D Wireless Headset','F',86);
+GO
+
+CREATE TABLE #SellerRatings
+(
+Sellers VARCHAR(100),
+Ratings FLOAT
+PRIMARY KEY (Sellers)
+);
+GO
+
+INSERT INTO #SellerRatings VALUES
+('A', 4.4),('B',4.2),('C', 4.0),('D', 4.2),('E', 4.0),('F', 3.8);
+GO
+
+---- Sellers with different ratings and prices
+SELECT	SI.Sellers,
+		P.ProductName,
+		P.Price,
+		SR.Ratings,
+		RANK() OVER (PARTITION BY ProductName ORDER BY Price) Rank_By_Price,
+		RANK() OVER (PARTITION BY ProductName ORDER BY Ratings DESC) Rank_By_Ratings
+		FROM #SellerInfo SI
+LEFT JOIN #Products P ON SI.Sellers=P.Sellers
+LEFT JOIN #SellerRatings SR ON SI.Sellers=SR.Sellers
+WHERE P.ProductName IN ('DualShock 4 Wireless Controller');
+
+---- Sellers with same rating but different prices (same applies if price is same and rating is different) Case I
+SELECT	SI.Sellers,
+		P.ProductName,
+		P.Price,
+		SR.Ratings,
+		RANK() OVER (PARTITION BY ProductName ORDER BY Price) Rank_By_Price,
+		RANK() OVER (PARTITION BY ProductName ORDER BY Ratings DESC) Rank_By_Ratings
+		FROM #SellerInfo SI
+LEFT JOIN #Products P ON SI.Sellers=P.Sellers
+LEFT JOIN #SellerRatings SR ON SI.Sellers=SR.Sellers
+WHERE P.ProductName IN ('PlayStation PULSE 3D Wireless Headset');
+
+---- Sellers with same rating but different prices (same applies if price is same and rating is different) Case II
+SELECT	SI.Sellers,
+		P.ProductName,
+		P.Price,
+		SR.Ratings,
+		RANK() OVER (PARTITION BY ProductName ORDER BY Ratings DESC) Rank_By_Ratings,
+		DENSE_RANK() OVER (PARTITION BY ProductName ORDER BY Ratings DESC) DenseRank_By_Ratings,
+		ROW_NUMBER() OVER (PARTITION BY ProductName ORDER BY Ratings DESC) RowNumber_By_Ratings
+		
+FROM #SellerInfo SI
+LEFT JOIN #Products P ON SI.Sellers=P.Sellers
+LEFT JOIN #SellerRatings SR ON SI.Sellers=SR.Sellers
+WHERE P.ProductName IN ('PlayStation PULSE 3D Wireless Headset');
