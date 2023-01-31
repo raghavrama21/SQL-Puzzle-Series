@@ -1,0 +1,40 @@
+-- Top 100 rows of the dataset
+SELECT Top 100 * FROM [SalesData].[dbo].[Data] ;
+
+-- Filter the rows without an Order Date and use the column to get date level sales
+SELECT	CONVERT(date,[Order Date]) Order_Date,
+		SUM([Quantity Ordered]) Units,
+		ROUND(SUM([Quantity Ordered]*[Price Each]),2) Revenue
+FROM	[SalesData].[dbo].[Data] 
+WHERE	[Order Date] IS NOT NULL
+GROUP BY CONVERT(date,[Order Date])
+ORDER BY CONVERT(date,[Order Date]);
+
+-- Building the Month-To-Date comparisons
+WITH Sales_CTE AS (SELECT	CONVERT(date,[Order Date]) Order_Date,
+		Product,
+		SUM([Quantity Ordered]) Units,
+		ROUND(SUM([Quantity Ordered]*[Price Each]),2) Revenue
+FROM	[SalesData].[dbo].[Data] 
+WHERE	[Order Date] IS NOT NULL
+GROUP BY CONVERT(date,[Order Date]),Product),
+
+Sales_CTE_2 AS (SELECT	DISTINCT CONVERT(date,Order_Date) Order_Date, 
+						Product,
+						Units, 
+						Revenue,
+						ROW_NUMBER() OVER (PARTITION BY YEAR(CONVERT(datetime,Order_Date)), 
+											MONTH(CONVERT(datetime,Order_Date)) ORDER BY DAY(CONVERT(datetime,Order_Date))) Day_of_Sale
+				FROM	Sales_CTE
+				WHERE	Order_Date IS NOT NULL)
+
+SELECT	MONTH(Order_Date) AS Month, 
+		SUM(CASE WHEN Day_of_Sale = 1 THEN Units ELSE 0 END) AS Day_1_Sales,
+		SUM(CASE WHEN Day_of_Sale = 2 THEN Units ELSE 0 END) AS Day_2_Sales,
+		SUM(CASE WHEN Day_of_Sale = 3 THEN Units ELSE 0 END) AS Day_3_Sales,
+		SUM(CASE WHEN Day_of_Sale = 4 THEN Units ELSE 0 END) AS Day_4_Sales,
+		SUM(CASE WHEN Day_of_Sale = 5 THEN Units ELSE 0 END) AS Day_5_Sales,
+		SUM(CASE WHEN Day_of_Sale = 6 THEN Units ELSE 0 END) AS Day_6_Sales
+FROM Sales_CTE_2
+GROUP BY MONTH(Order_Date)
+ORDER BY MONTH(Order_Date); 
